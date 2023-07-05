@@ -1,0 +1,47 @@
+import os
+from zipfile import ZipFile
+import datetime
+import ftplib
+
+#connect to ftp server logic
+server = ftplib.FTP()
+server.connect("<ftp ipaddress>")
+server.login("<username>", "<password>")
+
+#setup name of backup and destination
+timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+filename = f"backup-{timestamp}"
+source_path = 'c:/users/<username>/documents/<file_name>'
+
+
+#open file log
+f = open(f"c:/users/<username>/documents/logs/{timestamp}.txt", "a")
+f.write(f"Started backup {datetime.datetime.now()} \n")
+
+if os.path.exists(source_path):  
+    #traverse the folder and files that need to be backuped and get their paths
+    paths = []
+    for root, dirs, files in os.walk(source_path):
+        for file in files:
+            paths.append(os.path.join(root, file))
+
+    #zip all files
+    with ZipFile(f'{filename}.zip', 'w') as zip:
+        for file in paths:
+            zip.write(file)
+
+    #change directory on ftp server, read backup file as binary and store it on ftp server
+    ftp_path = server.cwd('<path where backup need to be put>')
+    fzip = open(f'c:/users/<username>/{filename}.zip', 'rb')
+    server.storbinary(f'STOR {filename}.zip', fzip)
+    fzip.close()
+    server.quit()
+
+    #write logs and delete local backup
+    f.write(f"Finished copying files. Finished at: {datetime.datetime.now()} \n")
+    os.remove(f'c:/users/<username>/{filename}.zip')
+    f.close()
+
+else:
+    f.write("Ooops, someone deleted the production database! We should probably start panicking right now. \n")
+    f.close()
