@@ -1,0 +1,60 @@
+import pymongo
+import sys
+
+mongo_client = pymongo.MongoClient("mongodb://localhost:27017/")
+baza = mongo_client['Osoblje']
+k_zaposleni = baza['Zaposleni']
+k_ugovorci = baza['Ugovorci']
+
+def unos_zaposlenih():
+    lista_zaposlenih = []
+    zaposleni = {}
+    zaposleni['ime'] = input("Unesite ime: ")
+    zaposleni['prezime'] = input("Unesite prezime: ")
+    zaposleni['godiste'] = input("Unesite godiste: ")
+    print('\n')
+    lista_zaposlenih.append(zaposleni)
+    k_zaposleni.insert_one(lista_zaposlenih[0])
+    lista_zaposlenih.pop()
+    
+def unos_ugovoraca():
+    lista_ugovoraca = []
+    ugovorci = {}
+    ugovorci['ime'] = input("Unesite ime: ")
+    ugovorci['prezime'] = input("Unesite prezime: ")
+    ugovorci['godiste'] = input("Unesite godiste: ")
+    print('\n')
+    lista_ugovoraca.append(ugovorci)
+    k_ugovorci.insert_one(lista_ugovoraca[0])
+    lista_ugovoraca.pop()
+
+
+while True:
+    provera = input("Da li zelite da unesete novog zaposlenog-ugovorca? Pritisnite d ili D za da, bilo koji drugi taster za ne.")
+    if provera == 'd' or provera == 'D':
+        provera_unosa = input("Da li zelita da unesete novog zaposlenog ili ugovorca? Pritisnite (z) za zaposlenog ili (u) za ugovorca ili (q) za izlaz!")
+        if provera_unosa == 'u':
+            unos_ugovoraca()
+        elif provera_unosa == 'z':
+            unos_zaposlenih()
+        elif provera_unosa == 'q':
+            break
+        else:
+            print("Pogresan unos.Pritisnite (z) za zaposlenog ili (u) za ugovorca ili (q) za izlaz! ")
+            continue
+    else:
+        break
+
+prompt = input("Da li zelis da prikazes sve unose?")
+if prompt == "d" or prompt == 'D':
+    prompt = input("Sta zelis da prikazem? (z) zaposlene ili (u) ugovorce?")
+    if prompt == "u":
+        svi_ugovorci = k_ugovorci.find({},{"_id": 0, "ime": 1, "prezime": 1, "godiste": 1})
+        for ugovorac in svi_ugovorci:
+            print(ugovorac)
+    elif prompt == "z":
+        svi_zaposleni = k_zaposleni.find({}, {"_id": 0, "ime": 1, "prezime": 1, "godiste": 1})
+        for zaposleni in svi_zaposleni:
+            print(zaposleni)
+    else:
+        print("Dovidjenja")
